@@ -225,14 +225,15 @@ const twentyBest90s = async db => {
   }
 }
 
-// 35. Devuelve los nombre de los directores y las fechas solo en años basadas en juegos que hayan recaudado menos de `500000$`
-const twentyBest90s = async db => {
+// 35. Devuelve los nombre de los directores y las fechas solo en años de películas basadas en juegos y que hayan recaudado menos de `500000$`
+const gamesUnder500000= async db => {
   try {
     const { rows: directors_movies } = await db.query(sql`
     SELECT d.name, EXTRACT(YEAR FROM m.release_date)
     FROM directors AS d
     INNER JOIN movies AS m
     ON d.id = m.director
+    WHERE m.source ILIKE '%game%'
     GROUP BY d.name, m.release_date
     HAVING SUM(m.us_gross + m.worldwide_gross) < 500000
     `)
@@ -244,7 +245,22 @@ const twentyBest90s = async db => {
   }
 }
 
+const gamesUnder500000worldwide= async db => {
+  try {
+    const { rows: directors_movies } = await db.query(sql`
+    SELECT d.name, EXTRACT(YEAR FROM m.release_date)
+    FROM directors AS d
+    INNER JOIN movies AS m
+    ON d.id = m.director
+    WHERE m.source ILIKE '%game%' AND m.worldwide_gross < 500000
+    `)
 
+    return directors_movies
+  } catch (error) {
+    console.info('> error: ', error.message)
+    return false
+  }
+}
 
 module.exports={
     getAll,
@@ -259,4 +275,6 @@ module.exports={
     pg13,
     fifthBestCanadian,
     twentyBest90s,
+    gamesUnder500000,
+    gamesUnder500000worldwide,
 }
